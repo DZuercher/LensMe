@@ -80,6 +80,10 @@ class nfw_halo_lens:
             for j in range(nx):
                 # relative physical distance to center of halo of pixel i,j
                 (self.deflection_x[i,j],self.deflection_y[i,j]) = self.calc_deflection_field(i, j)
+
+        # angular positions of the pixels
+        self.x, self.y = np.meshgrid(np.arange(0, self.nx) * self.dx, np.arange(0, self.ny) * self.dy)
+
         print("Ready for lensing :)")
 
     def calc_deflection_field(self, i, j):
@@ -118,12 +122,10 @@ class nfw_halo_lens:
         if reshape:
             img = self.reshape_image(img)
 
-        # angular positions of the pixels
-        x, y = np.meshgrid(np.arange(0, self.nx) * self.dx, np.arange(0, self.ny) * self.dy)
         
         # new angular positions
-        lxs = (x - self.deflection_x).flatten(); del x
-        lys = (y - self.deflection_y).flatten(); del y
+        lxs = (self.x - self.deflection_x).flatten()
+        lys = (self.y - self.deflection_y).flatten()
 
         # Lens image
         image_lensed = np.zeros((self.ny, self.nx, 3), dtype='uint8')
