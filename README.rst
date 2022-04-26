@@ -10,20 +10,24 @@ LensMe also features a simple GUI.
 Installation
 ============
 
-    $ git clone git@github.com:DZuercher/LensMe.git  
-    $ cd LensMe
-    $ python setup.py install
+To install LensMe type::
+
+    git clone git@github.com:DZuercher/LensMe.git  
+    cd LensMe
+    python setup.py install
+
+in your terminal.
 
 Usage
 =====
 
-Just type 
+Just type:: 
 
-    $ lensme 
+    lensme 
     
 in your terminal and you are ready to go.
 
 Credits
 =======
 
-The nfw_ class is heavily based on `gravity-game <https://github.com/mdlreyes/gravity-game>`_
+The nfw_halo_lens class is heavily based on `gravity-game <https://github.com/mdlreyes/gravity-game>`_
