@@ -1,16 +1,8 @@
-# First things, first. Import the wxPython package.
 import wx
 import cv2
-import sys
-import numpy as np
-from lens import nfw_halo_lens
-import matplotlib.pyplot as plt
-from PIL import Image
-
+from LensMe.lens import nfw_halo_lens
 
 class FloatSlider(wx.Slider):
-    # def __init__(self, *args, **kw):
-    #     super(FloatSlider, self).__init__(*args, **kw)
     def GetValue(self):
         return (float(wx.Slider.GetValue(self)))/self.GetMax()
 
@@ -55,7 +47,7 @@ class MainFrame(wx.Frame):
 
         # viedo title 
         videotitle_panel = wx.Panel(self.master_panel)
-        videotitle = wx.StaticText(videotitle_panel, label='Lensed webcam steam')
+        videotitle = wx.StaticText(videotitle_panel, label='Lensed webcam stream')
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
         videotitle.SetFont(font)
         self.vbox.Add(videotitle_panel, flag=wx.ALL, border=10)
@@ -223,9 +215,11 @@ class MainFrame(wx.Frame):
         """Display an About Dialog"""
         wx.MessageBox("Some LensMe blabla")
         
-
-if __name__== '__main__':
+def main():
     app = wx.App()
     frm = MainFrame(None, title='LensMe')
     frm.Show()
     app.MainLoop()
+
+if __name__== '__main__':
+    main()
