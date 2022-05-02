@@ -31,3 +31,9 @@ Credits
 =======
 
 The nfw_halo_lens class is heavily based on `gravity-game <https://github.com/mdlreyes/gravity-game>`_
+
+
+ToDos
+=====
+
+- Make GUI styling nicer

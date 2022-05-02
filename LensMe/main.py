@@ -1,19 +1,86 @@
 import wx
-import cv2
 from LensMe.lens import nfw_halo_lens
+import cv2
+import _thread 
+import numpy as np
 
-class FloatSlider(wx.Slider):
-    def GetValue(self):
-        return (float(wx.Slider.GetValue(self)))/self.GetMax()
+class StreamPanel(wx.Panel):
+    def __init__(self, video=None, lens=None, *args, **kw):
+        # ensure the parent's __init__ is called
+        super(StreamPanel, self).__init__(*args, **kw)
 
-class VideoInput():
-    def __init__(self):
-        # define a video capture object
+        self.SetDoubleBuffered(True)
+
+        self.fps = 3
+
+        self.video = video
+        self.lens = lens
+
+        frame = np.zeros((480, 480, 3))
+        img = wx.Image(480, 480, frame)
+        self.bmp = img.ConvertToBitmap()
+
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.timer.Start(int(1000/self.fps))
+        self.Show()
+
+
+    def UpdateFrame(self):
+        ret, frame = self.video.read()
+        if ret:
+            frame = self.lens.reshape_image(frame)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = wx.Image(480, 480, frame)
+            self.bmp = img.ConvertToBitmap()
+
+    def OnTimer(self, event):
+        _thread.start_new_thread(self.UpdateFrame, ())
+        self.Refresh()
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        dc.DrawBitmap(self.bmp, 0, 0)
+
+class LensPanel(wx.Panel):
+    def __init__(self, *args, **kw):
+        super(LensPanel, self).__init__(*args, **kw)
+
+        self.SetDoubleBuffered(True)
+
+        frame = np.zeros((480, 480, 3))
+        img = wx.Image(480, 480, frame)
+        self.bmp = img.ConvertToBitmap()
+
+        self.fps = 3
+
         self.video = cv2.VideoCapture(0)
 
-    def __call__(self):
+        self.lens = nfw_halo_lens(200., 3., 0.5, 1.0, 480, 480, 0.5, 0.5)    
+
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.timer.Start(int(1000/self.fps))
+        self.Show()
+
+
+    def UpdateFrame(self):
         ret, frame = self.video.read()
-        return frame
+        if ret:
+            frame = self.lens(frame)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = wx.Image(480, 480, frame)
+            self.bmp = img.ConvertToBitmap()
+
+    def OnTimer(self, event):
+        _thread.start_new_thread(self.UpdateFrame, ())
+        self.Refresh()
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        dc.DrawBitmap(self.bmp, 0, 0)
 
 class MainFrame(wx.Frame):
     """
@@ -21,12 +88,12 @@ class MainFrame(wx.Frame):
     """
 
     def __init__(self, *args, **kw):
-        # ensure the parent's __init__ is called
         super(MainFrame, self).__init__(*args, **kw)
 
         ##########
         # General setup of the main application
         ##########
+        self.fps = 1 # unfortunately performance is not great 
 
         # center main frame on screen
         self.Centre()
@@ -42,6 +109,14 @@ class MainFrame(wx.Frame):
         self.master_panel = wx.Panel(self)
         self.master_panel.SetBackgroundColour("gray")
 
+        # defaults
+        self.M_halo=200.
+        self.c_halo=3.
+        self.z_halo=0.5
+        self.z_source=1.
+        self.frac_pos_x=0.5 
+        self.frac_pos_y=0.5
+
         # sizer
         self.vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -52,35 +127,17 @@ class MainFrame(wx.Frame):
         videotitle.SetFont(font)
         self.vbox.Add(videotitle_panel, flag=wx.ALL, border=10)
 
-        # initialize video capture
-        capture = VideoInput()
-        self.capture = capture
-
-        # setup lens
         self.SetStatusText("LensMe Status: Calculating deflection field. Please wait...")
 
-        # defaults
-        self.M_halo=200.
-        self.c_halo=3.
-        self.z_halo=0.5
-        self.z_source=1.
-        self.frac_pos_x=0.5 
-        self.frac_pos_y=0.5
-        self.lens = nfw_halo_lens(200., 3., 0.5, 1.0, 480, 480, 0.5, 0.5)    
         self.SetStatusText("LensMe Status: Ready")
 
         # init videopanel
-        self.videopanel = wx.Panel(self.master_panel)
-        self.vbox.Add(self.videopanel, flag=wx.ALL, border=10)
-
-        # init with single shot image
-        frame = self.capture()
-        frame = self.lens(frame)
-        self.height, self.width = frame.shape[:2]
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        img = wx.Image(self.width, self.height, frame)
-        self.imageCtrl = wx.StaticBitmap(self.videopanel, wx.ID_ANY, 
-                                         wx.Bitmap(img))
+        videobox = wx.BoxSizer(wx.HORIZONTAL)
+        self.videopanel = LensPanel(self.master_panel, size=(480, 480))
+        self.streampanel = StreamPanel(video=self.videopanel.video, lens=self.videopanel.lens, parent=self.master_panel, size=(480, 480))
+        videobox.Add(self.videopanel)
+        videobox.Add(self.streampanel, flag=wx.LEFT|wx.BOTTOM, border=5)
+        self.vbox.Add(videobox, flag=wx.ALIGN_RIGHT|wx.RIGHT, border=10)
 
         # controls
         self.add_slider('set_M_halo', 'Halo Mass in 10^15 solar masses', 1., 200., 1000.)
@@ -91,25 +148,17 @@ class MainFrame(wx.Frame):
 
         # add buttons
         buttonbox = wx.BoxSizer(wx.HORIZONTAL)
-        btn1 = wx.Button(self.master_panel, label='Recompute', size=(100, 30))
+        btn1 = wx.Button(self.master_panel, label='Recompute', size=(100, 70))
         btn1.Bind(wx.EVT_BUTTON, self.recompute)
         buttonbox.Add(btn1)
-        btn2 = wx.Button(self.master_panel, label='Reset Defaults', size=(180, 30))
+        btn2 = wx.Button(self.master_panel, label='Reset Defaults', size=(180, 70))
         btn2.Bind(wx.EVT_BUTTON, self.reset)
         buttonbox.Add(btn2, flag=wx.LEFT|wx.BOTTOM, border=5)
         self.vbox.Add(buttonbox, flag=wx.ALIGN_RIGHT|wx.RIGHT, border=10)
 
-        # set up periodic screen capture
-        self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.NextFrame, self.timer)
-        self.fps = 1 # unfortunately performance is not great 
-        self.timer.Start(int(1000/self.fps))
-
         self.master_panel.SetSizer(self.vbox)
 
     def add_slider(self, attribute, label, min, default, max):
-        # title
-
         min *= 100
         max *= 100
         default *= 100
@@ -128,6 +177,7 @@ class MainFrame(wx.Frame):
                         style=wx.SL_HORIZONTAL)
         sld.Bind(wx.EVT_SCROLL, getattr(self, attribute))
         sliderbox.Add(sld, flag=wx.LEFT|wx.EXPAND, border=25, proportion=5)
+        setattr(self, f'{attribute}_slider', sld)
         default = float(default) / 100.
         setattr(self, f'{attribute}_label', wx.StaticText(self.master_panel, label=str(default)))
         sliderbox.Add(getattr(self, f'{attribute}_label'), flag=wx.RIGHT, border=25, proportion=1)
@@ -170,25 +220,22 @@ class MainFrame(wx.Frame):
 
     def recompute(self, event):
         self.SetStatusText("LensMe Status: Calculating deflection field. Please wait...")
-        self.timer.Stop() 
-        self.lens = nfw_halo_lens(self.M_halo, self.c_halo, self.z_halo, self.z_source, 480, 480, self.frac_pos_x, self.frac_pos_y)    
-        self.timer.Start(int(1000/self.fps)) 
+        print(self.M_halo, self.c_halo, self.z_halo, self.z_source, self.frac_pos_x, self.frac_pos_y)
+        self.videopanel.lens = nfw_halo_lens(self.M_halo, self.c_halo, self.z_halo, self.z_source, 480, 480, self.frac_pos_x, self.frac_pos_y)    
         self.SetStatusText("LensMe Status: Ready")
 
     def reset(self, event):
         self.SetStatusText("LensMe Status: Calculating deflection field. Please wait...")
-        self.timer.Stop() 
-        self.lens = nfw_halo_lens(200., 3., 0.5, 1.0, 480, 480, 0.5, 0.5)    
-        self.timer.Start(int(1000/self.fps)) 
-        self.SetStatusText("LensMe Status: Ready")
+        self.videopanel.lens = nfw_halo_lens(200., 3., 0.5, 1.0, 480, 480, 0.5, 0.5)    
 
-    def NextFrame(self, event):
-        frame = self.capture()
-        frame = self.lens(frame)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        img = wx.Image(self.width, self.height, frame)
-        self.imageCtrl.SetBitmap(wx.Bitmap(img))
-        self.videopanel.Refresh()
+        # reset sliders
+        self.set_M_halo_slider.SetValue(int(200. * 100.))
+        self.set_c_halo_slider.SetValue(int(3. * 100.))
+        self.set_z_halo_slider.SetValue(int(0.5 * 100.))
+        self.set_frac_pos_x_slider.SetValue(int(0.5* 100.))
+        self.set_frac_pos_y_slider.SetValue(int(0.5 * 100.))
+
+        self.SetStatusText("LensMe Status: Ready")
 
     def makeMenuBar(self):
         menubar = wx.MenuBar()
@@ -205,7 +252,6 @@ class MainFrame(wx.Frame):
         menubar.Append(aboutMenu, "&About")
 
         self.SetMenuBar(menubar)
-
 
     def OnExit(self, event):
         """Close the frame, terminating the application."""

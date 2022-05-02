@@ -1,4 +1,5 @@
 from scipy import misc
+import cv2
 import numpy as np
 from scipy import interpolate
 from scipy import misc
@@ -8,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from PIL import Image
 import tqdm
+from time import time, sleep
     
 
 class nfw_halo_lens:
@@ -85,6 +87,26 @@ class nfw_halo_lens:
         self.x, self.y = np.meshgrid(np.arange(0, self.nx) * self.dx, np.arange(0, self.ny) * self.dy)
 
         print("Ready for lensing :)")
+        self.frame = np.zeros((ny, nx, 3))
+        self.video = None
+
+    def start_video_lensing(self, lensing=True, fps=1):
+        if self.video is None:
+            self.video = cv2.VideoCapture(0)
+        while True:
+            sleep(1. / fps - time() % (1. / fps))
+            ret, frame = self.video.read()
+            if not ret:
+                continue
+            if lensing:
+                frame = self(frame)
+            else:
+                frame = self.reshape_image(frame)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            self.frame = frame
+
+    def stop_video_lensing(self):
+        self.video.release()
 
     def calc_deflection_field(self, i, j):
         """Calculate the deflection angle in x and y direction given a pixel id i,j"""
@@ -182,9 +204,9 @@ class nfw_halo_lens:
         # return resizes, squared image
         p = len(channel_1)
         image_lensed = np.zeros((p,p,3), dtype='uint8')
-        image_lensed[:,:,0] = np.flip(channel_1, axis=0)
-        image_lensed[:,:,1] = np.flip(channel_2, axis=0)
-        image_lensed[:,:,2] = np.flip(channel_3, axis=0)
+        image_lensed[:,:,0] = channel_1
+        image_lensed[:,:,1] = channel_2
+        image_lensed[:,:,2] = channel_3
         return image_lensed
 
 if __name__ == '__main__':
