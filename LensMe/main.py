@@ -1,12 +1,12 @@
 import wx
 from LensMe.lens import nfw_halo_lens
 import cv2
-import _thread 
+import _thread
 import numpy as np
+
 
 class StreamPanel(wx.Panel):
     def __init__(self, video=None, lens=None, *args, **kw):
-        # ensure the parent's __init__ is called
         super(StreamPanel, self).__init__(*args, **kw)
 
         self.SetDoubleBuffered(True)
@@ -26,7 +26,6 @@ class StreamPanel(wx.Panel):
         self.timer.Start(int(1000/self.fps))
         self.Show()
 
-
     def UpdateFrame(self):
         ret, frame = self.video.read()
         if ret:
@@ -43,6 +42,7 @@ class StreamPanel(wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 0, 0)
 
+
 class LensPanel(wx.Panel):
     def __init__(self, *args, **kw):
         super(LensPanel, self).__init__(*args, **kw)
@@ -57,14 +57,13 @@ class LensPanel(wx.Panel):
 
         self.video = cv2.VideoCapture(0)
 
-        self.lens = nfw_halo_lens(200., 3., 0.5, 1.0, 480, 480, 0.5, 0.5)    
+        self.lens = nfw_halo_lens(200., 3., 0.5, 1.0, 480, 480, 0.5, 0.5)
 
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.timer.Start(int(1000/self.fps))
         self.Show()
-
 
     def UpdateFrame(self):
         ret, frame = self.video.read()
@@ -82,17 +81,10 @@ class LensPanel(wx.Panel):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self.bmp, 0, 0)
 
-class MainFrame(wx.Frame):
-    """
-    A Frame that says Hello World
-    """
 
+class MainFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(MainFrame, self).__init__(*args, **kw)
-
-        ##########
-        # General setup of the main application
-        ##########
 
         # center main frame on screen
         self.Centre()
@@ -109,37 +101,44 @@ class MainFrame(wx.Frame):
         self.master_panel.SetBackgroundColour("gray")
 
         # defaults
-        self.M_halo=200.
-        self.c_halo=3.
-        self.z_halo=0.5
-        self.z_source=1.
-        self.frac_pos_x=0.5 
-        self.frac_pos_y=0.5
+        self.M_halo = 200.
+        self.c_halo = 3.
+        self.z_halo = 0.5
+        self.z_source = 1.
+        self.frac_pos_x = 0.5
+        self.frac_pos_y = 0.5
 
         # sizer
         self.vbox = wx.BoxSizer(wx.VERTICAL)
 
-        # viedo title 
+        # viedo title
         videotitle_panel = wx.Panel(self.master_panel)
-        videotitle = wx.StaticText(videotitle_panel, label='Lensed webcam stream')
+        videotitle = wx.StaticText(
+            videotitle_panel, label='Lensed webcam stream')
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
         videotitle.SetFont(font)
         self.vbox.Add(videotitle_panel, flag=wx.ALL, border=10)
 
-        self.SetStatusText("LensMe Status: Calculating deflection field. Please wait...")
-
-        self.SetStatusText("LensMe Status: Ready")
+        self.SetStatusText(
+            "LensMe Status: Calculating deflection field. Please wait...")
 
         # init videopanel
         videobox = wx.BoxSizer(wx.HORIZONTAL)
         self.videopanel = LensPanel(self.master_panel, size=(480, 480))
-        self.streampanel = StreamPanel(video=self.videopanel.video, lens=self.videopanel.lens, parent=self.master_panel, size=(480, 480))
+        self.streampanel = StreamPanel(
+            video=self.videopanel.video, lens=self.videopanel.lens,
+            parent=self.master_panel, size=(480, 480))
         videobox.Add(self.videopanel)
-        videobox.Add(self.streampanel, flag=wx.LEFT|wx.BOTTOM, border=5)
-        self.vbox.Add(videobox, flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
+        videobox.Add(
+            self.streampanel, flag=wx.LEFT | wx.BOTTOM, border=5)
+        self.vbox.Add(
+            videobox, flag=wx.ALIGN_LEFT | wx.RIGHT, border=10)
+
+        self.SetStatusText("LensMe Status: Ready")
 
         # controls
-        self.add_slider('set_M_halo', 'Halo Mass in 10^15 solar masses', 1., 200., 1000.)
+        self.add_slider(
+            'set_M_halo', 'Halo Mass in 10^15 solar masses', 1., 200., 1000.)
         self.add_slider('set_c_halo', 'Halo concentration', 0.1, 3, 10.)
         self.add_slider('set_z_halo', 'Halo redshift', 0., 0.5, 1.)
         self.add_slider('set_frac_pos_x', 'Halo position, x-axis', 0., 0.5, 1.)
@@ -150,10 +149,11 @@ class MainFrame(wx.Frame):
         btn1 = wx.Button(self.master_panel, label='Recompute', size=(100, 50))
         btn1.Bind(wx.EVT_BUTTON, self.recompute)
         buttonbox.Add(btn1)
-        btn2 = wx.Button(self.master_panel, label='Reset Defaults', size=(180, 50))
+        btn2 = wx.Button(
+            self.master_panel, label='Reset Defaults', size=(180, 50))
         btn2.Bind(wx.EVT_BUTTON, self.reset)
-        buttonbox.Add(btn2, flag=wx.LEFT|wx.BOTTOM, border=5)
-        self.vbox.Add(buttonbox, flag=wx.ALIGN_RIGHT|wx.RIGHT, border=5)
+        buttonbox.Add(btn2, flag=wx.LEFT | wx.BOTTOM, border=5)
+        self.vbox.Add(buttonbox, flag=wx.ALIGN_RIGHT | wx.RIGHT, border=5)
 
         self.master_panel.SetSizer(self.vbox)
 
@@ -161,6 +161,9 @@ class MainFrame(wx.Frame):
         self.Maximize(True)
 
     def add_slider(self, attribute, label, min, default, max):
+        """
+        Adds a slider to the GUI
+        """
         min *= 100
         max *= 100
         default *= 100
@@ -175,65 +178,74 @@ class MainFrame(wx.Frame):
         self.vbox.Add(title_panel, flag=wx.ALL, border=5)
         # slider box
         sliderbox = wx.BoxSizer(wx.HORIZONTAL)
-        sld = wx.Slider(self.master_panel, value=default, minValue=min, maxValue=max,
-                        style=wx.SL_HORIZONTAL)
+        sld = wx.Slider(
+            self.master_panel, value=default, minValue=min, maxValue=max,
+            style=wx.SL_HORIZONTAL)
         sld.Bind(wx.EVT_SCROLL, getattr(self, attribute))
-        sliderbox.Add(sld, flag=wx.LEFT|wx.EXPAND, proportion=5)
+        sliderbox.Add(sld, flag=wx.LEFT | wx.EXPAND, proportion=5)
         setattr(self, f'{attribute}_slider', sld)
         default = float(default) / 100.
-        setattr(self, f'{attribute}_label', wx.StaticText(self.master_panel, label=str(default)))
-        sliderbox.Add(getattr(self, f'{attribute}_label'), flag=wx.RIGHT, proportion=1)
-        self.vbox.Add(sliderbox, flag=wx.ALL|wx.EXPAND, border=5)
+        setattr(
+            self, f'{attribute}_label',
+            wx.StaticText(self.master_panel, label=str(default)))
+        sliderbox.Add(
+            getattr(self, f'{attribute}_label'), flag=wx.RIGHT, proportion=1)
+        self.vbox.Add(sliderbox, flag=wx.ALL | wx.EXPAND, border=5)
 
     def set_M_halo(self, event):
         obj = event.GetEventObject()
         val = obj.GetValue()
         val = float(val) / 100.
         self.M_halo = float(val)
-        self.set_M_halo_label.SetLabel(str(val)) 
+        self.set_M_halo_label.SetLabel(str(val))
 
     def set_c_halo(self, event):
         obj = event.GetEventObject()
         val = obj.GetValue()
         val = float(val) / 100.
         self.c_halo = float(val)
-        self.set_c_halo_label.SetLabel(str(val)) 
+        self.set_c_halo_label.SetLabel(str(val))
 
     def set_z_halo(self, event):
         obj = event.GetEventObject()
         val = obj.GetValue()
         val = float(val) / 100.
         self.z_halo = float(val)
-        self.set_z_halo_label.SetLabel(str(val)) 
+        self.set_z_halo_label.SetLabel(str(val))
 
     def set_frac_pos_x(self, event):
         obj = event.GetEventObject()
         val = obj.GetValue()
         val = float(val) / 100.
         self.frac_pos_x = float(val)
-        self.set_frac_pos_x_label.SetLabel(str(val)) 
+        self.set_frac_pos_x_label.SetLabel(str(val))
 
     def set_frac_pos_y(self, event):
         obj = event.GetEventObject()
         val = obj.GetValue()
         val = float(val) / 100.
         self.frac_pos_y = float(val)
-        self.set_frac_pos_y_label.SetLabel(str(val)) 
+        self.set_frac_pos_y_label.SetLabel(str(val))
 
     def recompute(self, event):
-        self.SetStatusText("LensMe Status: Calculating deflection field. Please wait...")
-        self.videopanel.lens = nfw_halo_lens(self.M_halo, self.c_halo, self.z_halo, self.z_source, 480, 480, self.frac_pos_x, self.frac_pos_y)    
+        self.SetStatusText(
+            "LensMe Status: Calculating deflection field. Please wait...")
+        self.videopanel.lens = nfw_halo_lens(
+            self.M_halo, self.c_halo, self.z_halo, self.z_source,
+            480, 480, self.frac_pos_x, self.frac_pos_y)
         self.SetStatusText("LensMe Status: Ready")
 
     def reset(self, event):
-        self.SetStatusText("LensMe Status: Calculating deflection field. Please wait...")
-        self.videopanel.lens = nfw_halo_lens(200., 3., 0.5, 1.0, 480, 480, 0.5, 0.5)    
+        self.SetStatusText(
+            "LensMe Status: Calculating deflection field. Please wait...")
+        self.videopanel.lens = nfw_halo_lens(
+            200., 3., 0.5, 1.0, 480, 480, 0.5, 0.5)
 
         # reset sliders
         self.set_M_halo_slider.SetValue(int(200. * 100.))
         self.set_c_halo_slider.SetValue(int(3. * 100.))
         self.set_z_halo_slider.SetValue(int(0.5 * 100.))
-        self.set_frac_pos_x_slider.SetValue(int(0.5* 100.))
+        self.set_frac_pos_x_slider.SetValue(int(0.5 * 100.))
         self.set_frac_pos_y_slider.SetValue(int(0.5 * 100.))
         self.set_M_halo_label.SetLabel('200.0')
         self.set_c_halo_label.SetLabel('3.0')
@@ -265,13 +277,21 @@ class MainFrame(wx.Frame):
 
     def OnAbout(self, event):
         """Display an About Dialog"""
-        wx.MessageBox("BLAAA")
-        
+        wx.MessageBox(
+            "LensMe: A software to demonstrate the effect of gravitational"
+            " lensing using a webcam video input stream. \n The lens is "
+            "modelled as an NFW halo.\n This tool was developed as part of "
+            "a demonstration for the ETH Zurich Night of Physics 2022. "
+            "\n \n Developed by: \n Dominik Zuercher \n "
+            "dominikzuercher1999@gmail.com\n May 2022")
+
+
 def main():
     app = wx.App()
     frm = MainFrame(None, title='LensMe')
     frm.Show()
     app.MainLoop()
 
-if __name__== '__main__':
+
+if __name__ == '__main__':
     main()

@@ -3,7 +3,9 @@
 import os
 from setuptools import find_packages, setup
 
-requirements = ['tqdm', 'scipy', 'numpy', 'astropy', 'matplotlib', 'Pillow', 'opencv-python', 'wxPython']
+requirements = ['tqdm', 'scipy', 'numpy', 'astropy',
+                'matplotlib', 'Pillow', 'opencv-python',
+                'wxPython']
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
