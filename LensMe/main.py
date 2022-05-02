@@ -11,7 +11,7 @@ class StreamPanel(wx.Panel):
 
         self.SetDoubleBuffered(True)
 
-        self.fps = 3
+        self.fps = 4
 
         self.video = video
         self.lens = lens
@@ -53,7 +53,7 @@ class LensPanel(wx.Panel):
         img = wx.Image(480, 480, frame)
         self.bmp = img.ConvertToBitmap()
 
-        self.fps = 3
+        self.fps = 4
 
         self.video = cv2.VideoCapture(0)
 
@@ -93,7 +93,6 @@ class MainFrame(wx.Frame):
         ##########
         # General setup of the main application
         ##########
-        self.fps = 1 # unfortunately performance is not great 
 
         # center main frame on screen
         self.Centre()
@@ -137,7 +136,7 @@ class MainFrame(wx.Frame):
         self.streampanel = StreamPanel(video=self.videopanel.video, lens=self.videopanel.lens, parent=self.master_panel, size=(480, 480))
         videobox.Add(self.videopanel)
         videobox.Add(self.streampanel, flag=wx.LEFT|wx.BOTTOM, border=5)
-        self.vbox.Add(videobox, flag=wx.ALIGN_RIGHT|wx.RIGHT, border=10)
+        self.vbox.Add(videobox, flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
 
         # controls
         self.add_slider('set_M_halo', 'Halo Mass in 10^15 solar masses', 1., 200., 1000.)
@@ -148,15 +147,18 @@ class MainFrame(wx.Frame):
 
         # add buttons
         buttonbox = wx.BoxSizer(wx.HORIZONTAL)
-        btn1 = wx.Button(self.master_panel, label='Recompute', size=(100, 70))
+        btn1 = wx.Button(self.master_panel, label='Recompute', size=(100, 50))
         btn1.Bind(wx.EVT_BUTTON, self.recompute)
         buttonbox.Add(btn1)
-        btn2 = wx.Button(self.master_panel, label='Reset Defaults', size=(180, 70))
+        btn2 = wx.Button(self.master_panel, label='Reset Defaults', size=(180, 50))
         btn2.Bind(wx.EVT_BUTTON, self.reset)
         buttonbox.Add(btn2, flag=wx.LEFT|wx.BOTTOM, border=5)
-        self.vbox.Add(buttonbox, flag=wx.ALIGN_RIGHT|wx.RIGHT, border=10)
+        self.vbox.Add(buttonbox, flag=wx.ALIGN_RIGHT|wx.RIGHT, border=5)
 
         self.master_panel.SetSizer(self.vbox)
+
+        # Fullscreen (improves performance)
+        self.Maximize(True)
 
     def add_slider(self, attribute, label, min, default, max):
         min *= 100
@@ -170,18 +172,18 @@ class MainFrame(wx.Frame):
         title = wx.StaticText(title_panel, label=label)
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
         title.SetFont(font)
-        self.vbox.Add(title_panel, flag=wx.ALL, border=10)
+        self.vbox.Add(title_panel, flag=wx.ALL, border=5)
         # slider box
         sliderbox = wx.BoxSizer(wx.HORIZONTAL)
         sld = wx.Slider(self.master_panel, value=default, minValue=min, maxValue=max,
                         style=wx.SL_HORIZONTAL)
         sld.Bind(wx.EVT_SCROLL, getattr(self, attribute))
-        sliderbox.Add(sld, flag=wx.LEFT|wx.EXPAND, border=25, proportion=5)
+        sliderbox.Add(sld, flag=wx.LEFT|wx.EXPAND, proportion=5)
         setattr(self, f'{attribute}_slider', sld)
         default = float(default) / 100.
         setattr(self, f'{attribute}_label', wx.StaticText(self.master_panel, label=str(default)))
-        sliderbox.Add(getattr(self, f'{attribute}_label'), flag=wx.RIGHT, border=25, proportion=1)
-        self.vbox.Add(sliderbox, flag=wx.ALL|wx.EXPAND, border=10)
+        sliderbox.Add(getattr(self, f'{attribute}_label'), flag=wx.RIGHT, proportion=1)
+        self.vbox.Add(sliderbox, flag=wx.ALL|wx.EXPAND, border=5)
 
     def set_M_halo(self, event):
         obj = event.GetEventObject()
@@ -220,7 +222,6 @@ class MainFrame(wx.Frame):
 
     def recompute(self, event):
         self.SetStatusText("LensMe Status: Calculating deflection field. Please wait...")
-        print(self.M_halo, self.c_halo, self.z_halo, self.z_source, self.frac_pos_x, self.frac_pos_y)
         self.videopanel.lens = nfw_halo_lens(self.M_halo, self.c_halo, self.z_halo, self.z_source, 480, 480, self.frac_pos_x, self.frac_pos_y)    
         self.SetStatusText("LensMe Status: Ready")
 
@@ -234,6 +235,11 @@ class MainFrame(wx.Frame):
         self.set_z_halo_slider.SetValue(int(0.5 * 100.))
         self.set_frac_pos_x_slider.SetValue(int(0.5* 100.))
         self.set_frac_pos_y_slider.SetValue(int(0.5 * 100.))
+        self.set_M_halo_label.SetLabel('200.0')
+        self.set_c_halo_label.SetLabel('3.0')
+        self.set_z_halo_label.SetLabel('0.5')
+        self.set_frac_pos_x_label.SetLabel('0.5')
+        self.set_frac_pos_x_label.SetLabel('0.5')
 
         self.SetStatusText("LensMe Status: Ready")
 
@@ -259,7 +265,7 @@ class MainFrame(wx.Frame):
 
     def OnAbout(self, event):
         """Display an About Dialog"""
-        wx.MessageBox("Some LensMe blabla")
+        wx.MessageBox("BLAAA")
         
 def main():
     app = wx.App()
