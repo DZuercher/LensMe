@@ -11,7 +11,7 @@ class StreamPanel(wx.Panel):
 
         self.SetDoubleBuffered(True)
 
-        self.fps = 4
+        self.fps = 8
 
         self.video = video
         self.lens = lens
@@ -39,7 +39,7 @@ class StreamPanel(wx.Panel):
         self.Refresh()
 
     def OnPaint(self, event):
-        dc = wx.PaintDC(self)
+        dc = wx.BufferedPaintDC(self)
         dc.DrawBitmap(self.bmp, 0, 0)
 
 
@@ -53,7 +53,7 @@ class LensPanel(wx.Panel):
         img = wx.Image(480, 480, frame)
         self.bmp = img.ConvertToBitmap()
 
-        self.fps = 4
+        self.fps = 8
 
         self.video = cv2.VideoCapture(0)
 
