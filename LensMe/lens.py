@@ -192,11 +192,11 @@ class nfw_halo_lens:
                 channel_3 = channel_3[int(dif / 2):int(dif / 2) + n_new, :]
             else:
                 channel_1 = channel_1[
-                    int(dif / 2):(m_new-int(dif / 2)) - 1, :]
+                    int(dif / 2):m_new-int(dif / 2) - 1, :]
                 channel_2 = channel_2[
-                    int(dif / 2):(m_new-int(dif / 2)) - 1, :]
+                    int(dif / 2):m_new-int(dif / 2) - 1, :]
                 channel_3 = channel_3[
-                    int(dif / 2):(m_new-int(dif / 2)) - 1, :]
+                    int(dif / 2):m_new-int(dif / 2) - 1, :]
         elif m == k and n != m:
             dif = abs(m_new - n_new)
             if dif % 2 == 0:
@@ -205,11 +205,11 @@ class nfw_halo_lens:
                 channel_3 = channel_3[:, int(dif / 2):int(dif / 2) + m_new]
             else:
                 channel_1 = channel_1[
-                    :, int(dif / 2):int(n_new - dif / 2) - 1]
+                    :, int(dif / 2):n_new - int(dif / 2) - 1]
                 channel_2 = channel_2[
-                    :, int(dif / 2):int(n_new - dif / 2) - 1]
+                    :, int(dif / 2):n_new - int(dif / 2) - 1]
                 channel_3 = channel_3[
-                    :, int(dif / 2):int(n_new - dif / 2) - 1]
+                    :, int(dif / 2):n_new - int(dif / 2) - 1]
 
         # return resizes, squared image
         p = len(channel_1)
