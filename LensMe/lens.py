@@ -211,6 +211,32 @@ class nfw_halo_lens:
                 channel_3 = channel_3[
                     :, int(dif / 2 + 0.5):int(n_new - dif / 2 - 0.5)]
 
+        # pad if size is off
+        if channel_1.shape[1] < self.nx:
+            channel_1 = np.hstack((channel_1,
+            np.zeros((channel_1.shape[0], self.nx - channel_1.shape[1]))))
+            channel_2 = np.hstack((channel_2,
+            np.zeros((channel_2.shape[0], self.nx - channel_2.shape[1]))))
+            channel_3 = np.hstack((channel_3,
+            np.zeros((channel_3.shape[0], self.nx - channel_3.shape[1]))))
+        if channel_1.shape[1] > self.nx:
+            channel_1 = channel_1[:, :-(channel_1.shape[1] - self.nx)]
+            channel_2 = channel_2[:, :-(channel_2.shape[1] - self.nx)]
+            channel_3 = channel_3[:, :-(channel_3.shape[1] - self.nx)]
+
+        if channel_1.shape[0] < self.ny:
+            channel_1 = np.vstack((channel_1,
+            np.zeros((self.ny - channel_1.shape[0], channel_1.shape[0]))))
+            channel_2 = np.vstack((channel_2,
+            np.zeros((self.ny - channel_2.shape[0], channel_2.shape[0]))))
+            channel_3 = np.vstack((channel_3,
+            np.zeros((self.ny - channel_3.shape[0], channel_3.shape[0]))))
+
+        if channel_1.shape[0] > self.ny:
+            channel_1 = channel_1[:-(channel_1.shape[0] - self.ny), :]
+            channel_2 = channel_2[:-(channel_2.shape[0] - self.ny), :]
+            channel_3 = channel_3[:-(channel_3.shape[0] - self.ny), :]
+
         # return resizes, squared image
         p = len(channel_1)
         image_lensed = np.zeros((p, p, 3), dtype='uint8')
