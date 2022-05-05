@@ -187,55 +187,29 @@ class nfw_halo_lens:
         elif n == k and n != m:
             dif = abs(n_new - m_new)
             if dif % 2 == 0:
-                channel_1 = channel_1[int(dif / 2):int(dif / 2 + n_new), :]
-                channel_2 = channel_2[int(dif / 2):int(dif / 2 + n_new), :]
-                channel_3 = channel_3[int(dif / 2):int(dif / 2 + n_new), :]
+                channel_1 = channel_1[int(dif / 2):int(dif / 2) + n_new, :]
+                channel_2 = channel_2[int(dif / 2):int(dif / 2) + n_new, :]
+                channel_3 = channel_3[int(dif / 2):int(dif / 2) + n_new, :]
             else:
                 channel_1 = channel_1[
-                    int(dif / 2 - 0.5):(m_new-int(dif / 2 - 0.5)), :]
+                    int(dif / 2):(m_new-int(dif / 2)) - 1, :]
                 channel_2 = channel_2[
-                    int(dif / 2 - 0.5):(m_new-int(dif / 2 - 0.5)), :]
+                    int(dif / 2):(m_new-int(dif / 2)) - 1, :]
                 channel_3 = channel_3[
-                    int(dif / 2 - 0.5):(m_new-int(dif / 2 - 0.5)), :]
+                    int(dif / 2):(m_new-int(dif / 2)) - 1, :]
         elif m == k and n != m:
             dif = abs(m_new - n_new)
             if dif % 2 == 0:
-                channel_1 = channel_1[:, int(dif / 2):int(dif / 2 + m_new)]
-                channel_2 = channel_2[:, int(dif / 2):int(dif / 2 + m_new)]
-                channel_3 = channel_3[:, int(dif / 2):int(dif / 2 + m_new)]
+                channel_1 = channel_1[:, int(dif / 2):int(dif / 2) + m_new]
+                channel_2 = channel_2[:, int(dif / 2):int(dif / 2) + m_new]
+                channel_3 = channel_3[:, int(dif / 2):int(dif / 2) + m_new]
             else:
                 channel_1 = channel_1[
-                    :, int(dif / 2 + 0.5):int(n_new - dif / 2 - 0.5)]
+                    :, int(dif / 2):int(n_new - dif / 2) - 1]
                 channel_2 = channel_2[
-                    :, int(dif / 2 + 0.5):int(n_new - dif / 2 - 0.5)]
+                    :, int(dif / 2):int(n_new - dif / 2) - 1]
                 channel_3 = channel_3[
-                    :, int(dif / 2 + 0.5):int(n_new - dif / 2 - 0.5)]
-
-        # pad if size is off
-        if channel_1.shape[1] < self.nx:
-            channel_1 = np.hstack((channel_1,
-            np.zeros((channel_1.shape[0], self.nx - channel_1.shape[1]))))
-            channel_2 = np.hstack((channel_2,
-            np.zeros((channel_2.shape[0], self.nx - channel_2.shape[1]))))
-            channel_3 = np.hstack((channel_3,
-            np.zeros((channel_3.shape[0], self.nx - channel_3.shape[1]))))
-        if channel_1.shape[1] > self.nx:
-            channel_1 = channel_1[:, :-(channel_1.shape[1] - self.nx)]
-            channel_2 = channel_2[:, :-(channel_2.shape[1] - self.nx)]
-            channel_3 = channel_3[:, :-(channel_3.shape[1] - self.nx)]
-
-        if channel_1.shape[0] < self.ny:
-            channel_1 = np.vstack((channel_1,
-            np.zeros((self.ny - channel_1.shape[0], channel_1.shape[0]))))
-            channel_2 = np.vstack((channel_2,
-            np.zeros((self.ny - channel_2.shape[0], channel_2.shape[0]))))
-            channel_3 = np.vstack((channel_3,
-            np.zeros((self.ny - channel_3.shape[0], channel_3.shape[0]))))
-
-        if channel_1.shape[0] > self.ny:
-            channel_1 = channel_1[:-(channel_1.shape[0] - self.ny), :]
-            channel_2 = channel_2[:-(channel_2.shape[0] - self.ny), :]
-            channel_3 = channel_3[:-(channel_3.shape[0] - self.ny), :]
+                    :, int(dif / 2):int(n_new - dif / 2) - 1]
 
         # return resizes, squared image
         p = len(channel_1)
