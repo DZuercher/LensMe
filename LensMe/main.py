@@ -2,6 +2,7 @@ import wx
 from LensMe.lens import nfw_halo_lens
 import cv2
 import _thread
+from threading import Thread
 import numpy as np
 
 
@@ -78,13 +79,15 @@ class LensPanel(wx.Panel):
         self.Refresh()
 
     def OnPaint(self, event):
-        dc = wx.PaintDC(self)
+        dc = wx.BufferedPaintDC(self)
         dc.DrawBitmap(self.bmp, 0, 0)
 
 
 class MainFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(MainFrame, self).__init__(*args, **kw)
+
+        self.SetDoubleBuffered(True)
 
         # center main frame on screen
         self.Centre()
