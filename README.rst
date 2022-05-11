@@ -28,7 +28,7 @@ Just type::
 in your terminal and you are ready to go.
 
 .. image:: lensme.png
-    :width: 300px
+    :width: 600px
 
 
 Credits
