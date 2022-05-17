@@ -5,6 +5,7 @@ LensMe
 LensMe is a small python software meant for demonstrating how gravitational lensing works.
 LensMe allows to capture the videoinput from a webcam and shows the image as it it would appear when lensed by a NFW halo.
 LensMe also features a simple GUI.
+So far LensMe is only fully supported on Linux systems.
 
 
 Installation
@@ -16,7 +17,9 @@ To install LensMe type::
     cd LensMe
     python setup.py install
 
-in your terminal.
+in your terminal. 
+
+Note: For wx to work you need to install the GTK3 development tools (on Ubuntu: sudo apt install libgtk-3-dev).
 
 Usage
 =====

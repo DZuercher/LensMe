@@ -131,9 +131,9 @@ class MainFrame(wx.Frame):
         self.streampanel = StreamPanel(
             video=self.videopanel.video, lens=self.videopanel.lens,
             parent=self.master_panel, size=(480, 480))
-        videobox.Add(self.videopanel)
+        videobox.Add(self.streampanel)
         videobox.Add(
-            self.streampanel, flag=wx.LEFT | wx.BOTTOM, border=5)
+            self.videopanel, flag=wx.LEFT | wx.BOTTOM, border=5)
         self.vbox.Add(
             videobox, flag=wx.ALIGN_LEFT | wx.RIGHT, border=10)
 
